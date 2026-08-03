@@ -27,7 +27,7 @@ from sklearn.metrics import classification_report, confusion_matrix
 from config import REPORTS_DIR, MODELS_DIR, ID2LABEL
 from preprocess import load_and_preprocess
 # Импорт нужен, чтобы joblib смог десериализовать кастомный векторайзер.
-from train_improved import WordCharVectorizer  # noqa: F401
+from train_improved import WordCharVectorizer, LemmaTfidfVectorizer  # noqa: F401
 
 
 def main() -> None:

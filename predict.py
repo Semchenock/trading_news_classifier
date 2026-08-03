@@ -26,7 +26,7 @@ import numpy as np
 from config import MODELS_DIR, ID2LABEL
 from preprocess import clean_text
 # Импорт нужен для десериализации кастомного векторайзера из train_improved.
-from train_improved import WordCharVectorizer  # noqa: F401
+from train_improved import WordCharVectorizer, LemmaTfidfVectorizer  # noqa: F401
 
 
 @lru_cache(maxsize=1)

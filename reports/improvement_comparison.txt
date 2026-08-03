@@ -2,12 +2,14 @@
 
 | Метод | Macro F1 | Улучшение |
 |-------|----------|-----------|
-| Baseline: TF-IDF(1,2) + LogReg | 0.6870 | - |
-| TF-IDF(1,3) + LinearSVC | 0.6646 | -2.24% |
-| TF-IDF(1,2) sublinear + LogReg | 0.6948 | +0.78% |
-| Word+Char TF-IDF + LinearSVC | 0.6800 | -0.70% |
-| Word+Char + LinearSVC (tuned C=0.5) | 0.6983 | +1.13% |
+| Baseline: TF-IDF(1,2) + LogReg | 0.5987 | - |
+| TF-IDF(1,3) + LinearSVC | 0.6646 | +6.59% |
+| TF-IDF(1,2) sublinear + LogReg | 0.6948 | +9.61% |
+| Word+Char TF-IDF + LinearSVC | 0.6800 | +8.13% |
+| TF-IDF(1,2) + RandomForest | 0.5609 | -3.78% |
+| Lemmatization(spacy) + TF-IDF + LogReg | 0.7147 | +11.60% |
+| Word+Char + LinearSVC (tuned C=0.5) | 0.6983 | +9.96% |
 
-Лучший метод: Word+Char + LinearSVC (tuned C=0.5) (macro F1 = 0.6983, +1.13% к baseline).
+Лучший метод: Lemmatization(spacy) + TF-IDF + LogReg (macro F1 = 0.7147, +11.60% к baseline).
 
-Что помогло: символьные n-граммы устойчивы к опечаткам/тикерам и формам слов; LinearSVC хорошо работает на разреженных TF-IDF; class_weight='balanced' поднимает recall редкого класса negative. Триграммы отдельно почти не помогли.
+Что помогло: лемматизация (spacy) схлопывает формы слов и уменьшает разреженность, а class_weight='balanced' поднимает recall редкого класса negative — их сочетание дало лучший результат. Символьные n-граммы и sublinear_tf тоже прибавляют. Что не помогло: RandomForest (склонен к majority-классу neutral на разреженных TF-IDF, худший результат) и триграммы отдельно.

@@ -35,7 +35,7 @@ trading_news_classifier/
 ├── predict.py              # День 6: inference на новых текстах
 ├── models/                 # сохранённые модели/векторайзеры (*.pkl)
 ├── reports/                # метрики, графики, отчёты
-├── notebooks/              # место для экспериментов
+├── notebooks/              # day1_eda .. day7_summary — по ноутбуку на день
 └── requirements.txt
 ```
 
@@ -45,9 +45,11 @@ trading_news_classifier/
 
 ```bash
 pip install -r requirements.txt
+# модель для лемматизации (нужна для одного из подходов Дня 4)
+python -m spacy download en_core_web_sm
 ```
 
-Зависимости: `pandas`, `scikit-learn`, `matplotlib`, `seaborn`, `joblib`.
+Зависимости: `pandas`, `scikit-learn`, `scipy`, `matplotlib`, `seaborn`, `joblib`, `spacy`.
 
 ---
 
@@ -98,7 +100,7 @@ python predict.py "Apple shares soared after record quarterly earnings"
 from predict import predict_sentiment
 
 predict_sentiment("The company announced massive layoffs")
-# -> [{'text': ..., 'label': 1, 'sentiment': 'neutral', 'confidence': 0.74}]
+# -> [{'text': ..., 'label': 1, 'sentiment': 'neutral', 'confidence': 0.64}]
 ```
 
 **Формат входа:** строка или список строк (сырой текст).
@@ -111,18 +113,26 @@ Inference применяет тот же `clean_text`, что и обучени�
 
 Основная метрика — **macro F1** на отложенном test set (20%, стратифицированный split).
 
+Baseline — `TF-IDF(1,2) + LogisticRegression(max_iter=200, n_jobs=-1)`
+(без балансировки классов). Все улучшения сравниваются на **том же** test set.
+Улучшение указано в процентных пунктах macro F1 к baseline.
+
 | Метод | Macro F1 | Улучшение |
 |-------|----------|-----------|
-| Baseline: TF-IDF(1,2) + LogReg (balanced) | 0.6870 | — |
-| TF-IDF(1,3) + LinearSVC | 0.6646 | −2.24% |
-| TF-IDF(1,2) sublinear + LogReg | 0.6948 | +0.78% |
-| Word+Char TF-IDF + LinearSVC | 0.6800 | −0.70% |
-| **Word+Char TF-IDF + LinearSVC (tuned C=0.5)** | **0.6983** | **+1.13%** |
+| Baseline: TF-IDF(1,2) + LogReg | 0.5987 | — |
+| TF-IDF(1,2) + RandomForest | 0.5609 | −3.78% |
+| TF-IDF(1,3) + LinearSVC | 0.6646 | +6.59% |
+| Word+Char TF-IDF + LinearSVC | 0.6800 | +8.13% |
+| TF-IDF(1,2) sublinear + LogReg | 0.6948 | +9.61% |
+| Word+Char + LinearSVC (tuned C=0.5) | 0.6983 | +9.96% |
+| **Lemmatization (spacy) + TF-IDF + LogReg** | **0.7147** | **+11.60%** |
 
-**Лучшая модель:** объединённые словесные + символьные TF-IDF признаки
-с подобранным по CV `LinearSVC`. Символьные n-граммы устойчивы к формам слов,
-тикерам и опечаткам; `class_weight='balanced'` поднимает recall редкого
-класса `negative`.
+**Лучшая модель:** лемматизация (spacy `en_core_web_sm`) + `TF-IDF(1,2)` +
+`LogisticRegression(class_weight='balanced')`. Лемматизация схлопывает формы
+слов и снижает разреженность признаков, а `class_weight='balanced'` поднимает
+recall редкого класса `negative`. Цель «улучшить macro F1 минимум на 5%»
+достигнута (**+11.60 п.п.**). `RandomForest` на разреженных TF-IDF уходит в
+majority-класс `neutral` и даёт худший результат.
 
 ### Error analysis (кратко)
 - Основная путаница — между **neutral и positive** (фактологические новости
@@ -137,11 +147,11 @@ Inference применяет тот же `clean_text`, что и обучени�
 ## Demo-примеры
 
 ```
-[positive] (conf=0.52)  Apple shares soared after the company reported record quarterly earnings.
-[ neutral] (conf=0.74)  The company announced massive layoffs and slashed its full-year guidance.
-[ neutral] (conf=0.51)  The central bank left interest rates unchanged, in line with expectations.
-[negative] (conf=0.69)  $TSLA plunged 8% on weak delivery numbers.
-[ neutral] (conf=0.43)  Revenue was roughly flat versus the prior quarter.
+[positive] (conf=0.49)  Apple shares soared after the company reported record quarterly earnings.
+[ neutral] (conf=0.64)  The company announced massive layoffs and slashed its full-year guidance.
+[positive] (conf=0.46)  The central bank left interest rates unchanged, in line with expectations.
+[negative] (conf=0.89)  $TSLA plunged 8% on weak delivery numbers.
+[ neutral] (conf=0.48)  Revenue was roughly flat versus the prior quarter.
 ```
 
 ---
@@ -155,9 +165,11 @@ Inference применяет тот же `clean_text`, что и обучени�
   качество упадёт.
 - **Дисбаланс классов**: `negative` предсказывается менее надёжно из-за малого
   числа примеров.
-- **Confidence** для `LinearSVC` — это softmax по `decision_function`, а не
-  калиброванная вероятность; сравнивать значения между собой можно, трактовать
-  как точную вероятность — нет.
+- **Confidence** у лучшей модели (LogReg) — это max предсказанной вероятности
+  (`predict_proba`); модель не откалибрована, поэтому значение стоит трактовать
+  как относительную уверенность, а не как точную вероятность. Для моделей без
+  `predict_proba` (напр. `LinearSVC`) `predict.py` использует softmax по
+  `decision_function`.
 - **Не является инвестиционной рекомендацией** — учебный проект.
 
 **Куда развивать:** контекстные эмбеддинги (например finBERT), больше данных

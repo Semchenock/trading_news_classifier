@@ -57,7 +57,7 @@ def main() -> None:
     X_train = vectorizer.fit_transform(X_train_text)
     X_test = vectorizer.transform(X_test_text)
 
-    model = LogisticRegression(max_iter=1000, class_weight="balanced")
+    model = LogisticRegression(max_iter=200, n_jobs=-1)
     model.fit(X_train, y_train)
 
     y_pred = model.predict(X_test)
@@ -72,7 +72,7 @@ def main() -> None:
     joblib.dump(vectorizer, MODELS_DIR / "baseline_vectorizer.pkl")
 
     result_text = (
-        "=== Baseline: TF-IDF (1,2) + LogisticRegression(balanced) ===\n"
+        "=== Baseline: TF-IDF (1,2) + LogisticRegression(max_iter=200, n_jobs=-1) ===\n"
         f"Train size: {len(train_idx)}, Test size: {len(test_idx)}\n\n"
         f"{report}\n"
         f"Baseline macro F1: {macro_f1:.4f}\n"
