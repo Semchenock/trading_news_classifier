@@ -1,0 +1,14 @@
+=== Baseline: TF-IDF (1,2) + LogisticRegression(balanced) ===
+Train size: 4257, Test size: 1065
+
+              precision    recall  f1-score   support
+
+    negative     0.4901    0.6271    0.5502       118
+     neutral     0.8204    0.8247    0.8225       576
+    positive     0.7254    0.6550    0.6884       371
+
+    accuracy                         0.7437      1065
+   macro avg     0.6786    0.7023    0.6870      1065
+weighted avg     0.7507    0.7437    0.7456      1065
+
+Baseline macro F1: 0.6870
