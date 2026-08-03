@@ -1,0 +1,64 @@
+=== День 1 — EDA финансовых новостей ===
+
+Размерность (строки, колонки): (5842, 2)
+
+Первые 5 строк:
+                                                                                                                                                                                                                         text sentiment
+0  The GeoSolutions technology will leverage Benefon 's GPS solutions by providing Location Based Search Technology , a Communities Platform , location relevant multimedia content and a new and powerful commercial model .  positive
+1                                                                                                                                                                     $ESI on lows, down $1.50 to $2.50 BK a real possibility  negative
+2                           For the last quarter of 2010 , Componenta 's net sales doubled to EUR131m from EUR76m for the same period a year earlier , while it moved to a zero pre-tax profit from a pre-tax loss of EUR7m .  positive
+3                                                                                            According to the Finnish-Russian Chamber of Commerce , all the major construction companies of Finland are operating in Russia .   neutral
+4                                                                                     The Swedish buyout firm has sold its remaining 22.4 percent stake , almost eighteen months after taking the company public in Finland .   neutral
+
+Типы данных / непустые значения:
+text         str
+sentiment    str
+
+Пропуски по колонкам:
+text         0
+sentiment    0
+
+После удаления пропусков и дубликатов текста: 5842 -> 5322 строк
+
+Распределение классов (кол-во):
+sentiment
+neutral     2878
+positive    1852
+negative     592
+
+Распределение классов (доля):
+sentiment
+neutral     0.541
+positive    0.348
+negative    0.111
+
+Статистика длины текста (символы):
+count    5322.0
+mean      116.1
+std        56.5
+min         9.0
+25%        71.0
+50%       106.0
+75%       150.0
+max       315.0
+
+Статистика количества слов:
+count    5322.0
+mean       20.7
+std        10.3
+min         2.0
+25%        13.0
+50%        19.0
+75%        27.0
+max        81.0
+
+Примеры по классам:
+[negative] $ESI on lows, down $1.50 to $2.50 BK a real possibility
+[neutral] According to the Finnish-Russian Chamber of Commerce , all the major construction companies of Finland are operating in Russia .
+[positive] The GeoSolutions technology will leverage Benefon 's GPS solutions by providing Location Based Search Technology , a Communities Platform , location relevant multimedia content and a new and powerful commercial model .
+
+Первые наблюдения:
+- Задача: классификация тональности новостей на 3 класса (negative/neutral/positive).
+- Классы несбалансированы: neutral заметно преобладает — это важно для выбора метрики (macro F1).
+- Тексты короткие (одно-два предложения), длина укладывается в разумный диапазон.
+- Есть биржевые тикеры ($ESI и т.п.) и числа — потенциально полезные признаки.
