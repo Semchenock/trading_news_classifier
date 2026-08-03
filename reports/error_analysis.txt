@@ -1,53 +1,53 @@
 === День 5 — Error analysis (best model) ===
 
-Всего в test: 1065, ошибок: 241 (22.6%)
+Всего в test: 1065, ошибок: 251 (23.6%)
 
 Classification report:
               precision    recall  f1-score   support
 
-    negative     0.5283    0.4746    0.5000       118
-     neutral     0.8167    0.8507    0.8333       576
-    positive     0.7744    0.7493    0.7616       371
+    negative     0.5263    0.6780    0.5926       118
+     neutral     0.8265    0.8351    0.8307       576
+    positive     0.7644    0.6819    0.7208       371
 
-    accuracy                         0.7737      1065
-   macro avg     0.7064    0.6915    0.6983      1065
-weighted avg     0.7700    0.7737    0.7714      1065
+    accuracy                         0.7643      1065
+   macro avg     0.7057    0.7317    0.7147      1065
+weighted avg     0.7716    0.7643    0.7661      1065
 
 Confusion matrix (строки=true, столбцы=pred):
              negative    neutral   positive
-  negative         56         37         25
-   neutral         30        490         56
-  positive         20         73        278
+  negative         80         16         22
+   neutral         39        481         56
+  positive         33         85        253
 
 Самые частые типы ошибок (true -> pred):
-  positive -> neutral: 73
+  positive -> neutral: 85
   neutral -> positive: 56
-  negative -> neutral: 37
-  neutral -> negative: 30
-  negative -> positive: 25
-  positive -> negative: 20
+  neutral -> negative: 39
+  positive -> negative: 33
+  negative -> positive: 22
+  negative -> neutral: 16
 
 Примеры ошибок:
 
 [positive -> neutral]
-  - The court found TelecomInvest 's arguments convincing .
   - Last year the company raised its turnover to approximately 7 million litas EUR 2 mln , from 6.1 million litas in 2004 .
   - According to CEO Kai Telanne , the company 's newspapers achieved the best financial result ever .
+  - The new office , located in Shenzhen , will strengthen Vaisala 's already 10-year old presence in China .
 
 [neutral -> positive]
+  - RAPALA TOURNAMENT FISHING : With all the major titles already out for the holidays , bargain-priced games such as Rapala aim for a smaller audience .
   - Finnish Componenta has published its new long-term strategy for the period 2011-2015 with the aim of growing together with its customers .
-  - Neste Shipping is the most likely to remain Finnish as the oil sector and its transports are significant for emergency supply .
-  - NetCom expects to complete Turbo 3G deployment in these areas this year .
-
-[negative -> neutral]
-  - Coca-Cola was the market leader of manufacturers with a market share of 36.9 % , down 2.2 % from the corresponding period in 2004-2005 .
-  - Border Guard Service has banned the mooring of the company car-shipping ferry on its test travel at the railroad-car terminal of the Russian port as the border checkpoint is not yet ready .
-  - Finnish Vaahto Group that provides paper-making technology and process machinery is starting negotiations concerning the temporary lay-offs of all 140 employees at the company 's plants in Hollola and Tampere , in Finland .
+  - Airbus will attempt to evacuate up to 873 people within 90 seconds .
 
 [neutral -> negative]
   - ADPnews - Feb 5 , 2010 - Finnish real estate investor Sponda Oyj HEL : SDA1V said today that it slipped to a net loss of EUR 81.5 million USD 11.8 m in 2009 from a profit of EUR 29.3 million in 2008 .
-  - GlaxoSmithKline starts hunt for successor to CEO Witty
+  - The stock was hit by the profit warning of Finnish rival Rautaruukki Oyj ( OMX : RTRKS ) .
   - $NVDA sideways
+
+[positive -> negative]
+  - Most bullish stocks on Twitter during this dip. $YHOO $GDX $GOOGL $STZ $GOLD $EW $VZ $CELG $SBUX $SCTY more: https://t.co/iuZJelfwt3
+  - The court found TelecomInvest 's arguments convincing .
+  - #LongPos $TSLA 256 Break-out thru 50 & 200- DMA (197-230) upper head res (274-279) Short squeeze in progress Nr term obj: 310 Stop loss:239
 
 Выводы по слабым местам:
 - Основная путаница между neutral и positive/negative: многие фактологические

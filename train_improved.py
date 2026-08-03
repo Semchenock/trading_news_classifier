@@ -8,7 +8,9 @@
   1. TF-IDF (1,3) + LinearSVC
   2. TF-IDF (1,2), sublinear_tf + LogisticRegression(balanced)
   3. TF-IDF(word) + TF-IDF(char 3-5) объединённые + LinearSVC
-  4. GridSearch по C для LinearSVC на подходе 3
+  4. TF-IDF (1,2) + RandomForest
+  5. Лемматизация (spacy) + TF-IDF (1,2) + LogisticRegression
+  6. GridSearch по C для LinearSVC на подходе 3
 
 Запуск (требует предварительного `python train_baseline.py`):
     python train_improved.py
@@ -16,9 +18,11 @@
 from __future__ import annotations
 
 import json
+from functools import lru_cache
 
 import joblib
 from scipy.sparse import hstack
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import f1_score
@@ -27,6 +31,20 @@ from sklearn.svm import LinearSVC
 
 from config import REPORTS_DIR, MODELS_DIR, RANDOM_STATE, ID2LABEL
 from preprocess import load_and_preprocess
+
+
+@lru_cache(maxsize=1)
+def _get_nlp():
+    """Ленивая загрузка spacy-модели (без parser/ner — нужны только леммы)."""
+    import spacy
+
+    return spacy.load("en_core_web_sm", disable=["parser", "ner"])
+
+
+def lemmatize_many(texts) -> list[str]:
+    """Лемматизирует список текстов через spacy nlp.pipe (батчами, быстро)."""
+    nlp = _get_nlp()
+    return [" ".join(tok.lemma_ for tok in doc) for doc in nlp.pipe(texts, batch_size=256)]
 
 
 def load_split():
@@ -73,6 +91,23 @@ class WordCharVectorizer:
         return hstack([self.word.transform(texts), self.char.transform(texts)]).tocsr()
 
 
+class LemmaTfidfVectorizer:
+    """Лемматизация (spacy) + TF-IDF. Хранит только TF-IDF, поэтому легко
+
+    сериализуется; spacy-модель подгружается лениво через _get_nlp(), так что
+    тот же препроцессинг работает и на inference.
+    """
+
+    def __init__(self):
+        self.tfidf = TfidfVectorizer(max_features=5000, ngram_range=(1, 2))
+
+    def fit_transform(self, texts):
+        return self.tfidf.fit_transform(lemmatize_many(list(texts)))
+
+    def transform(self, texts):
+        return self.tfidf.transform(lemmatize_many(list(texts)))
+
+
 def main() -> None:
     df, train_idx, test_idx = load_split()
     train_text = df.loc[train_idx, "text_clean"]
@@ -115,7 +150,21 @@ def main() -> None:
         LinearSVC(class_weight="balanced"),
     )
 
-    # Подход 4 — подбор C для LinearSVC на word+char признаках
+    # Подход 4 — RandomForest на TF-IDF
+    evaluate(
+        "TF-IDF(1,2) + RandomForest",
+        TfidfVectorizer(max_features=5000, ngram_range=(1, 2)),
+        RandomForestClassifier(n_estimators=100, n_jobs=-1, random_state=RANDOM_STATE),
+    )
+
+    # Подход 5 — лемматизация (spacy) + TF-IDF + LogReg
+    evaluate(
+        "Lemmatization(spacy) + TF-IDF + LogReg",
+        LemmaTfidfVectorizer(),
+        LogisticRegression(max_iter=1000, class_weight="balanced"),
+    )
+
+    # Подход 6 — подбор C для LinearSVC на word+char признаках
     wc = WordCharVectorizer()
     Xtr = wc.fit_transform(train_text)
     grid = GridSearchCV(
@@ -148,9 +197,11 @@ def main() -> None:
         f"Лучший метод: {best['name']} (macro F1 = {best['f1']:.4f}, "
         f"{(best['f1'] - baseline_f1) * 100:+.2f}% к baseline).",
         "",
-        "Что помогло: символьные n-граммы устойчивы к опечаткам/тикерам и формам слов; "
-        "LinearSVC хорошо работает на разреженных TF-IDF; class_weight='balanced' "
-        "поднимает recall редкого класса negative. Триграммы отдельно почти не помогли.",
+        "Что помогло: лемматизация (spacy) схлопывает формы слов и уменьшает разреженность, "
+        "а class_weight='balanced' поднимает recall редкого класса negative — их сочетание "
+        "дало лучший результат. Символьные n-граммы и sublinear_tf тоже прибавляют. "
+        "Что не помогло: RandomForest (склонен к majority-классу neutral на разреженных "
+        "TF-IDF, худший результат) и триграммы отдельно.",
     ]
     (REPORTS_DIR / "improvement_comparison.txt").write_text("\n".join(lines), encoding="utf-8")
     print("\n".join(lines[-4:]))

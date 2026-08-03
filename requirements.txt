@@ -1,5 +1,9 @@
-pandas
-scikit-learn
-matplotlib
-seaborn
-joblib
+pandas==3.0.3
+scikit-learn==1.9.0
+scipy==1.17.1
+matplotlib==3.11.1
+seaborn==0.13.2
+joblib==1.5.3
+spacy==3.8.13
+# Модель для лемматизации (День 4). Ставится отдельной командой:
+#   python -m spacy download en_core_web_sm
